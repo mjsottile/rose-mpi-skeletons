@@ -1,0 +1,45 @@
+* Class heirarchy
+
+  - MPIDepAttribute         MPIDepAttrib.h
+      // basically, it is this sum type (added to APIDepAttribute)
+      //   typedef enum { MPI_CALL, MPI_PAYLOAD, MPI_TOPOLOGY, MPI_TAG
+                        , MPI_OTHER } MPIDepType;
+
+    - APIDepAttribute       APIDepAttrib.h
+      //  enum DependenceForm {CONTROL,DATA,SELF};
+
+      - AstAttribute     # Rose class, no superclasses
+
+* Classes Trying to be Closures / Or Just Providing Data Hiding
+
+  APIDepFinder.h:
+    class APIDepFinder : public AstBottomUpProcessing<bool> {...}
+
+  DangerousOperationFinder.h:
+    class NodeChecker {
+      public:
+        virtual bool check(SgNode *n) = 0;
+    };
+
+    class DangerousOperationFinder : public AstBottomUpProcessing<bool> {...}
+
+  extractMPISkeleton.cc:
+    class APIDepChecker : public NodeChecker {...}
+
+* Module Dependencies
+
+  extractMPISkeleton.cc
+  . MPIDepAttrib.h        *
+  . initMPISpecs.cc/h     |
+  . .  APIDepFinder.cc/h  |
+  .    . APIDepAttrib.h   +
+  . Utils.cc/h
+  . DangerousOperationFinder.h
+
+* Misc
+
+  "APIDep" - string constant used as attribute name
+
+* Use of Rose
+
+  'DFAnalysis' - Rose Def Use Analysis, chap 20 in tutorial

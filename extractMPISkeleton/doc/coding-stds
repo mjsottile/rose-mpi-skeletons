@@ -1,0 +1,19 @@
+* FIXME
+
+  Areas of the code needing improvement should be labeled with a FIXME comment.
+
+  Even better would be a 'categorized & prioritized' FIXME as follows:
+
+    -- FIXME[E]  -- Efficiency needs improvement (speed or space).
+    -- FIXME[C]  -- Clarity needs improvement.
+    -- FIXME[R]  -- Robustness needs improvement.
+                      i.e., internal checks & consistency.
+                      checking user errors would be under 'F'
+                      E.g., horrible coupling between modules,
+                            built-in constants, etc.
+    -- FIXME[F]  -- Functionality needs to be changed/added.
+
+  Optionally a priority (of 1-3) can be appended, e.g.,
+
+    -- FIXME[E1]  -- efficiency improvement of 1st priority.
+

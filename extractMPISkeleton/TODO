@@ -1,0 +1,94 @@
+                   TODO, Improvement, & Bug List
+
+* Fix BUG001 documented in galois/notes.org
+
+  Note that the tests/t{23,24,28,29,39}/rose_test.c.expected reflect
+  the current wrong behavior, not what we want.
+
+* Improve the testing infrastructure to do all tests with outlining on.
+  (Some regression here or it never worked on all inputs?)
+
+* Improve the testing infrastructure to allow for tests that we expect to fail.
+  See anti-tests/t15.  This should be done with both outlining on/off.
+
+* Do we support applying extractMPISkeleton to multiple modules?
+  - if so, we need to add some tests for these.
+
+* For pragma related tasks, see processPragmas/TODO.
+
+* tests/t12 fails
+
+  - We expect the body to be empty here.
+  - MT: I suspect the problem is in Outline.cc at the very end of
+     void ifNotSkeletonAddFilletAttrib (APISpecs *specs, SgProject *proj);
+    We don't remove if the parent is in the 'toremove' list, but in this
+    case, the parent is the main block or function.
+
+* Improve outlining by creating larger outline units.
+
+  - One method for achieving this is to lengthen our basic-block spans
+    (broken by declarations) by either (or both):
+
+     - splitting declarations into declaration and initializer and moving the
+       declaration to the top of the basic block.  (This would be
+       straightforward in C but could change the semantics in C++.)
+
+     - moving declarations up as (the block) dependencies allow.
+
+* Outlining generates many warnings: investigate & remove where possible.
+
+* BUG: Outlining issues
+
+  - these don't compile (mpicc)
+      out-o/diffusion2.c
+      out-o/io.c
+    - for both of these:
+        ROSE is changing sprintf to a safe version of it (?), but
+        generating syntactically invalid C.
+
+  - what is this (why is local pathname baked into output?:
+      out-o/diffusion2.c:  (__builtin_expect((!( *file != 0)),0) != 0L)?__assert_rtn(__func__,"/Volumes/users/tullsen-data/src/mpis/examples/C_to_Promela/diffusion2.c",64,"file") : ((void )0);
+
+* Design improvements?
+
+  - Maybe this just fits with the C++ way of doing things, but I'll just capture
+    my initial reaction to some code in extractMPISkeleton.c
+
+      We have one instance of APIDepChecker that is used to create the one
+      instance of DangerousOperationFinder.  These two appear overly complex.
+      Do we need three classes (NodeChecker needed also) when we could have one?
+
+  - We are passing the global *constant* 'mpiSpecs' around a lot: this creates
+    intellectual work to determine that nothing fancy is going on but that the
+    local name is equivalent to the global name.
+
+* BUG: Small code generation issues.
+
+  - statements like this seem common in the skeleton output
+      if (blah-but-no-side-effect) ;
+    why are they being kept?
+
+* BUG: oddity in out/exchng.c:
+
+  This is being kept but no idea why:
+
+   24 /* Fill the data as specified */
+   25   for (i = 1; i <= (12 / size); i++)
+   26     for (j = 0; j < 12; j++)
+   27       xlocal[i][j] = rank;
+
+  Other assignments to 'xlocal' are being removed.
+
+* Use proper control dependency analysis
+
+  - Dependencies of loop and conditional expressions.
+
+  - Dependencies of calls to functions that make MPI calls.
+
+  - Might use full program dependency graph from new slicing
+    infrastructure in Backstroke.
+
+* Look at other types of skeletons, such as memory traversal skeletons.
+
+* Run generated code through PMPI-based tracer and check that it has the
+  same behavior as the original.

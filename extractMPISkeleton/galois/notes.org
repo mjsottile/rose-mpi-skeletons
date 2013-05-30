@@ -1,0 +1,57 @@
+
+* TODO BUG001 bug(s) in preserve/remove interacting with 'break' and etc.
+
+Note the construction of tests/t<20-39>:
+
+| #   | pragma   | break | mpicall | triv-lp | results                  |
+| t20 | loop     | n     | n       | y       | ok                       |
+| t21 | loop     | n     | n       | n       | ok                       |
+| t22 | loop     | n     | y       | n       | ok                       |
+| t23 | loop     | y     | n       | n       | ERROR                    |
+| t24 | loop     | y     | y       | n       | ERROR                    |
+| t25 | preserve | n     | n       | y       | ok                       |
+| t26 | preserve | n     | n       | n       | ok                       |
+| t27 | preserve | n     | y       | n       | ok                       |
+| t28 | preserve | y     | n       | n       | wrong: whole loop del'd  |
+| t29 | preserve | y     | y       | n       | wrong: loop skeletonized |
+| t30 | 0        | n     | n       | y       | ok                       |
+| t31 | 0        | n     | n       | n       | ok                       |
+| t32 | 0        | n     | y       | n       | ok                       |
+| t33 | 0        | y     | n       | n       | ok                       |
+| t34 | 0        | y     | y       | n       | ok                       |
+| t35 | remove   | n     | n       | y       | ok                       |
+| t36 | remove   | n     | n       | n       | ok                       |
+| t37 | remove   | n     | y       | n       | ok                       |
+| t38 | remove   | y     | n       | n       | ok                       |
+| t39 | remove   | y     | y       | n       | wrong: loop skeletonized |
+
+Q. Why do 23/24 behave different than 21/22: only difference is break!
+Q. And why a similar problem with 28/29 compared to 26/27:
+    the presence of break changes things.
+Q. And why the presence of break in t39 (vs t37) breaks things.
+
+* Log
+
+extractMPISkeleton/tests $ testm t23
+(cd t23 && ../../extractMPISkeleton -I/Volumes/users/tullsen-data/src/mpis/extractMPISkeleton/tests/../mpi-fakeheader -skel:spec /Volumes/users/tullsen-data/src/mpis/extractMPISkeleton/tests/../apis.coll `cat files` && touch testmark)
+/Users/tullsen/src/mpis/extractMPISkeleton/tests/t23
+pp: FOLLOWS: MPI_Send((&x),1,MPI_INT,0,0,MPI_COMM_WORLD);
+ERROR: In pragma '#pragma skel loop':
+  must be followed by for(;;){},  do{}while(),  or while(){}
+  (File /Volumes/users/tullsen-data/src/mpis/extractMPISkeleton/tests/t23/test.c, line 18, column 3)
+make: *** [t23/testmark] Error 1
+
+ - The loop is being removed completely before we get to processPragma pass.
+
+extractMPISkeleton/tests $ testm t24
+(cd t24 && ../../extractMPISkeleton -I/Volumes/users/tullsen-data/src/mpis/extractMPISkeleton/tests/../mpi-fakeheader -skel:spec /Volumes/users/tullsen-data/src/mpis/extractMPISkeleton/tests/../apis.coll `cat files` && touch testmark)
+/Users/tullsen/src/mpis/extractMPISkeleton/tests/t24
+pp: FOLLOWS: {for(i = 0;x < 100;i++) {MPI_Send((&x),1,MPI_INT,0,0,MPI_COMM_WORLD);}}
+ERROR: In pragma '#pragma skel loop':
+  must be followed by for(;;){},  do{}while(),  or while(){}
+  (File compilerGenerated, line 0, column 0)
+make: *** [t24/testmark] Error 1
+
+ - The loop is being inserted into a 1-statement block.
+   - Reasonable, the skeletonizing code should be able to make transforms.
+

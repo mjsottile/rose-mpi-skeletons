@@ -1,0 +1,9 @@
+galois export-ignore
+additional-tests export-ignore
+anti-tests export-ignore
+galois/* export-ignore
+additional-tests/* export-ignore
+anti-tests/* export-ignore
+TODO export-ignore
+doc/coding-stds export-ignore
+doc/roadmap export-ignore
